@@ -8,20 +8,11 @@ on:
 jobs:
   build:
     name: Build Go application
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Install Xrandr development package
-        run: sudo apt-get install -y libxrandr-dev
-
-      - name: Install ALSA development package
-        run: sudo apt-get install -y libasound2-dev
-
-      - name: Install OpenGL development package
-        run: sudo apt-get install -y libgl1-mesa-dev
 
       - name: Set up Go
         uses: actions/setup-go@v2
