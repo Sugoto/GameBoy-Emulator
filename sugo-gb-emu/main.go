@@ -33,7 +33,6 @@ func main() {
 
 	assert(len(cartBytes) > 3, "cannot parse, file is too small")
 
-	// TODO: config file instead
 	devMode := fileExists("devmode")
 
 	var emu dmgo.Emulator

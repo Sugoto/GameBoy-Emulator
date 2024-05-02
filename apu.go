@@ -103,11 +103,6 @@ func (apu *apu) genSample() {
 	leftSam, rightSam := uint32(0), uint32(0)
 	if apu.AllSoundsOn {
 
-		// IMPORTANT TODO:
-		// probably have to reintroduce wave bias fix
-		// from float-land. should probably center at
-		// 7.5 and let the end dc blocker get it around zero?
-
 		left0, right0 := apu.Sounds[0].getSample()
 		left1, right1 := apu.Sounds[1].getSample()
 		left2, right2 := apu.Sounds[2].getSample()

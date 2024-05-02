@@ -17,12 +17,6 @@ const (
 	breakOpChange int = iota
 	breakOpEq
 	breakOpNeq
-
-	// TODO: add these once we parse vals/args into ints and such
-	// breakOpGt
-	// breakOpGte
-	// breakOpLt
-	// breakOpLte
 )
 
 var breakOpsMap = map[string]int{

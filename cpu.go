@@ -1,6 +1,5 @@
 package dmgo
 
-// TODO: handle HALT hardware bug (see TCAGBD)
 func (cs *cpuState) handleInterrupts() bool {
 
 	var intFlag *bool

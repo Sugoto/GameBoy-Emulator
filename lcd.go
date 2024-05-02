@@ -401,7 +401,6 @@ func cgbToRGB(cgbColor uint16) (byte, byte, byte) {
 	r := byte(cgbColor&0x1f) << 3
 	g := byte(cgbColor>>5) << 3
 	b := byte(cgbColor>>10) << 3
-	// TODO: accurate CGB color mixing
 	return r, g, b
 }
 
@@ -427,7 +426,6 @@ var standardPalette = [][]byte{
 }
 
 func (lcd *lcd) applyCustomPalette(val byte) (byte, byte, byte) {
-	// TODO: actual custom palette choices stored in lcd
 	outVal := standardPalette[3-val]
 	return outVal[0], outVal[1], outVal[2]
 }

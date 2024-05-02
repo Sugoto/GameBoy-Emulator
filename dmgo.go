@@ -411,7 +411,6 @@ func (cs *cpuState) writeSpeedSwitchReg(val byte) {
 	cs.SpeedSwitchPrepped = val&0x01 == 0x01
 }
 func (cs *cpuState) handleSpeedSwitching() {
-	// TODO: accurate timing
 	if cs.SpeedSwitchPrepped {
 		cs.SpeedSwitchPrepped = false
 		cs.FastMode = !cs.FastMode
@@ -496,7 +495,6 @@ func (cs *cpuState) SetCartRAM(ram []byte) error {
 		copy(cs.Mem.CartRAM, ram)
 		return nil
 	}
-	// TODO: better checks if possible (e.g. real format, cart title/checksum, etc.)
 	return fmt.Errorf("ram size mismatch")
 }
 
@@ -548,17 +546,6 @@ func (cs *cpuState) step() {
 		}
 	}
 
-	// cs.debugLineOnStackChange()
-	// if cs.Steps&0x2ffff == 0 {
-	// if cs.PC == 0x4d19 {
-	// 	hitTarget = true
-	// }
-	// if hitTarget {
-	// 	fmt.Println(cs.DebugStatusLine())
-	// }
-	// fmt.Fprintln(os.Stderr, cs.DebugStatusLine())
-
-	// TODO: correct behavior, i.e. only resume on
 	// button press if not about to switch speeds.
 	if cs.InStopMode {
 		cs.TimerDivCycles = 0

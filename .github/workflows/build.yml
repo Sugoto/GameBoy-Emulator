@@ -19,27 +19,44 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Build
-        run: go build -o sugo-gb-emu.exe ./sugo-gb-emu/
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v1.0.0
-          release_name: Release ${{ github.sha }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sugo-gb-emu.exe
-          asset_name: sugo-gb-emu.exe
-          asset_content_type: application/octet-stream
+      - name: Extract current version
+      id: extract_version
+      run: echo "::set-output name=version::$(git describe --abbrev=0 --tags || echo 'v0.0.0')"
+      
+    - name: Increment version
+      id: increment_version
+      run: |
+        version=${{ steps.extract_version.outputs.version }}
+        version=${version#v}
+        IFS='.' read -r -a parts <<< "$version"
+        major="${parts[0]}"
+        minor="${parts[1]}"
+        patch="${parts[2]}"
+        ((patch++))
+        next_version="v$major.$minor.$patch"
+        echo "::set-output name=next_version::$next_version"
+      
+    - name: Build
+      run: go build -o sugo-gb-emu.exe ./sugo-gb-emu/
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.increment_version.outputs.next_version }}
+        release_name: ${{ steps.increment_version.outputs.next_version }}
+        draft: false
+        prerelease: false
+      
+    - name: Upload Release Asset
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sugo-gb-emu.exe
+        asset_name: sugo-gb-emu.exe
+        asset_content_type: application/octet-stream
