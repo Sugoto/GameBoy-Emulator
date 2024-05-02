@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-// main is the entry point of the program.
 func main() {
 
 	// defer profiling.Start().Stop()
