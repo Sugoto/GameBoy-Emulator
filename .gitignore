@@ -1,0 +1,13 @@
+glide.lock
+vendor
+
+tools
+build
+build-dev
+r
+
+*.gbc
+*.gbs
+*.sav
+
+*.exe
