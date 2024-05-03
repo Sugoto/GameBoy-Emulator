@@ -1,5 +1,6 @@
 glide.lock
 vendor
+.vscode
 
 tools
 build

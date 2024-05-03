@@ -2,21 +2,26 @@ package main
 
 import (
 	"github.com/sugoto/gameboy-emu"
-	// "github.com/theinternetftw/dmgo/profiling"
 	"github.com/theinternetftw/glimmer"
 
 	"archive/zip"
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"strings"
 	"time"
 )
 
-func main() {
+const (
+    listenAddr = "127.0.0.1:12345"
+)
 
-	// defer profiling.Start().Stop()
+func main() {
+	
+	sessionChan := make(chan *sessionState, 1)
+    go startServer(sessionChan)
 
 	assert(len(os.Args) == 2, "usage: ./dmgo ROM_FILENAME")
 	cartFilename := os.Args[1]
@@ -81,7 +86,7 @@ func main() {
 			})
 			dieIf(audioErr)
 
-			session := sessionState{
+			session := &sessionState{
 				snapshotPrefix:    snapshotPrefix,
 				saveFilename:      saveFilename,
 				frameTimer:        glimmer.MakeFrameTimer(),
@@ -90,8 +95,9 @@ func main() {
 				audio:             audio,
 				emu:               emu,
 			}
+			sessionChan <- session
 
-			runEmu(&session, sharedState)
+			runEmu(session, sharedState)
 		},
 	})
 }
@@ -270,4 +276,49 @@ func readZipFileOrDie(filename string) []byte {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
+}
+
+func startServer(sessionChan chan *sessionState) {
+	session := <-sessionChan
+	listener, err := net.Listen("tcp", listenAddr)
+	if err != nil {
+		panic(err)
+	}
+	defer listener.Close()
+
+	fmt.Println("Gameboy emulator server started.")
+
+	// Accept incoming connections
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection:", err)
+			continue
+		}
+
+		fmt.Println("Client connected.")
+
+		// Send FPS to the client
+		go func(c net.Conn) {
+			defer c.Close()
+			var prevFrameCount int
+			startTime := time.Now()
+			for {
+				// Calculate the FPS
+				frameCount := session.currentNumFrames
+				frames := frameCount - prevFrameCount
+				prevFrameCount = frameCount
+				elapsed := time.Since(startTime).Seconds()
+				fps := float64(frames) / elapsed
+				_, err := c.Write([]byte(fmt.Sprintf("FPS: %f\n", fps)))
+				if err != nil {
+					fmt.Println("Error writing to client:", err)
+					return
+				}
+
+				startTime = time.Now()
+				time.Sleep(time.Second)
+			}
+		}(conn)
+	}
 }

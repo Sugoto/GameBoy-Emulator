@@ -335,6 +335,7 @@ func (lcd *lcd) getTileAttrs(tmapAddr uint16, x, y byte) tileAttrs {
 	return attr
 }
 
+// DumpTiles dumps all tiles to a TGA file
 func (lcd *lcd) DumpTiles() {
 	tileAttrs := tileAttrs{}
 	pixData := []byte{}
@@ -354,6 +355,7 @@ func (lcd *lcd) DumpTiles() {
 	writeTgaRGB("tiledata.tga", 16*8, len(pixData)/(16*8*3), pixData)
 }
 
+// getBGPixel returns the pixel at x, y in the background layer
 func (lcd *lcd) getBGPixel(x, y byte) (byte, tileAttrs) {
 	mapAddr := lcd.getBGTileMapAddr()
 	dataAddr := lcd.getBGAndWindowTileDataAddr()
@@ -362,6 +364,7 @@ func (lcd *lcd) getBGPixel(x, y byte) (byte, tileAttrs) {
 	return lcd.getTilePixel(dataAddr, tileAttrs, tileNum, x, y), tileAttrs
 }
 
+// getWindowPixel returns the pixel at x, y in the window layer
 func (lcd *lcd) getWindowPixel(x, y byte) (byte, tileAttrs) {
 	mapAddr := lcd.getWindowTileMapAddr()
 	dataAddr := lcd.getBGAndWindowTileDataAddr()
@@ -370,6 +373,7 @@ func (lcd *lcd) getWindowPixel(x, y byte) (byte, tileAttrs) {
 	return lcd.getTilePixel(dataAddr, tileAttrs, tileNum, x, y), tileAttrs
 }
 
+// getSpritePixel returns the pixel at x, y in the sprite layer
 func (lcd *lcd) getSpritePixel(e *oamEntry, x, y byte) (byte, byte, byte, bool) {
 	tileX := byte(int16(x) - e.x)
 	tileY := byte(int16(y) - e.y)
@@ -389,7 +393,7 @@ func (lcd *lcd) getSpritePixel(e *oamEntry, x, y byte) (byte, byte, byte, bool) 
 	tileAttrs := tileAttrs{
 		useHighBank: e.cgbUseHighBank(),
 	}
-	rawPixel := lcd.getTilePixel(0x0000, tileAttrs, tileNum, tileX, tileY) // addr 8000 relative
+	rawPixel := lcd.getTilePixel(0x0000, tileAttrs, tileNum, tileX, tileY)
 	if rawPixel == 0 {
 		return 0, 0, 0, false // transparent
 	}
@@ -397,6 +401,7 @@ func (lcd *lcd) getSpritePixel(e *oamEntry, x, y byte) (byte, byte, byte, bool) 
 	return r, g, b, true
 }
 
+// cgbToRGB converts a CGB color to RGB
 func cgbToRGB(cgbColor uint16) (byte, byte, byte) {
 	r := byte(cgbColor&0x1f) << 3
 	g := byte(cgbColor>>5) << 3
@@ -497,23 +502,6 @@ func (lcd *lcd) parseOAMForScanline(scanline byte) {
 		}
 	}
 
-	// NOTE: Pandocs suggest that on DMG, x coord is first sort priority,
-	// oam index second, and that may be true for object draw sort order,
-	// but dkland suggests indexes reign supreme for the total number of
-	// drawable sprites. In that game they set x to zero to disable, and
-	// dk is never drawn below those sprites because his sprites are
-	// always at the front of the oam table.
-	//
-	// NOTE 2: After watching The Ultimate Game Boy talk, which is highly
-	// recommended, my opinion here has solidified. There it's suggested
-	// that the only thing that happens in oam search is the selection
-	// of the top ten, and the ten are decided on based on scanline test
-	// alone (well, Michael also suggests that an x != 0 test is made,
-	// but he's wrong about other things in the talk, so I'm holding out
-	// until I see evidence of this. It would make the setting of x to
-	// zero in disabled dkland sprites make more sense, though).
-
-	// resort to x-coord order (DMG only)
 	if !lcd.CGBMode {
 		sort.Stable(sortableOAM(lcd.OAMForScanline))
 	}
@@ -730,7 +718,7 @@ func (lcd *lcd) writeStatusReg(val byte) {
 }
 func (lcd *lcd) readStatusReg() byte {
 	return byteFromBools(
-		true, // bit 7 always set
+		true,
 		lcd.LYCInterrupt,
 		lcd.OAMInterrupt,
 		lcd.VBlankInterrupt,
