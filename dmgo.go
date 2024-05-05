@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+
 // Defines the parameters of the GameBoy's CPU
 type cpuState struct {
 	PC                     uint16 // Program Counter: points to the next instruction to be executed
