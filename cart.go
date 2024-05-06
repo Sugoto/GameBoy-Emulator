@@ -1,5 +1,6 @@
 package dmgo
 
+
 import "fmt"
 
 // CartInfo contains information about a game cartridge
