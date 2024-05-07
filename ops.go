@@ -12,6 +12,7 @@ func (cs *cpuState) setALUOp(val uint8, flags uint16) {
 	cs.setFlags(flags)
 }
 
+
 func setOpA(cs *cpuState, val uint8) { cs.A = val }
 func setOpB(cs *cpuState, val uint8) { cs.B = val }
 func setOpC(cs *cpuState, val uint8) { cs.C = val }
