@@ -3,7 +3,6 @@ package dmgo
 import "fmt"
 
 type apu struct {
-	// not marshalled in snapshot
 	buffer apuCircleBuf
 
 	LeftSample  uint32
