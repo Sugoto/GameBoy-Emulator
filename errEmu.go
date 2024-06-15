@@ -43,7 +43,6 @@ func (e *errEmu) FlipRequested() bool {
 	e.flipRequested = false
 	return result
 }
-
 func (e *errEmu) SetDevMode(b bool)          { e.devMode = b }
 func (e *errEmu) InDevMode() bool            { return e.devMode }
 func (e *errEmu) UpdateDbgKeyState(b []bool) {}
