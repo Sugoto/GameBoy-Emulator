@@ -334,7 +334,6 @@ func (sound *sound) runSweepCycle() {
 }
 
 func (sound *sound) runEnvCycle() {
-	// more complicated, see GBSOUND
 	if sound.EnvelopeSweepVal != 0 {
 		if sound.EnvelopeCounter < sound.EnvelopeSweepVal {
 			sound.EnvelopeCounter++
