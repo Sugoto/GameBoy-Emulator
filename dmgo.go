@@ -81,8 +81,7 @@ func (cs *cpuState) runSerialCycle() {
 		return
 	}
 	if !cs.SerialTransferClockIsInternal {
-		// no real link cable, so wait forever
-		// (hopefully til game times out transfer)
+		// no real link cable, so wait forever (hopefully til game times out transfer)
 		return
 	}
 	cs.SerialClock++
