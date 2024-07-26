@@ -189,7 +189,6 @@ func (gp *gbsPlayer) updateScreen() {
 	copyStr := string(gp.Hdr.CopyrightString[:])
 	copyParts := strings.SplitN(copyStr, " ", 2)
 	if len(copyParts) > 1 {
-		// almost always improves presentation
 		gp.TextDisplay.writeString(copyParts[0] + "\n")
 		gp.TextDisplay.writeString(copyParts[1] + "\n")
 	} else {
