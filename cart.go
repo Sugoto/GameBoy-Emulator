@@ -3,7 +3,7 @@ package dmgo
 
 import "fmt"
 
-// CartInfo contains information about a game cartridge
+// Information about the game cartridge
 type CartInfo struct {
 	Title            string // Title is the game title (11 or 16 characters)
 	ManufacturerCode string // ManufacturerCode is an optional 4-character code for the manufacturer
