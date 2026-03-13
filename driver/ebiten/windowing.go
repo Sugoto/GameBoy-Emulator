@@ -1,0 +1,151 @@
+package ebiten
+
+import (
+	"sync"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+)
+
+type WindowState struct {
+	RenderWidth  int
+	RenderHeight int
+
+	RenderMutex sync.Mutex
+	InputMutex  sync.Mutex
+
+	Pix []byte
+
+	keyWorkingBuf []ebiten.Key
+	keyCodeArray  [256]bool
+	keyCodeMap    map[KeyCode]bool
+	keyCharArray  [256]bool
+	keyCharMap    map[rune]bool
+
+	updateCallback func(*WindowState)
+	renderCallback func(*WindowState)
+}
+
+func (s *WindowState) CopyKeyCharArray(dest []bool) {
+	copy(dest, s.keyCharArray[:])
+}
+
+func (s *WindowState) CharIsDown(c rune) bool {
+	if c >= 0 && c < 256 {
+		return s.keyCharArray[byte(c)]
+	}
+	return s.keyCharMap[c]
+}
+
+func (s *WindowState) CodeIsDown(c KeyCode) bool {
+	if c < 256 {
+		return s.keyCodeArray[byte(c)]
+	}
+	return s.keyCodeMap[c]
+}
+
+func (s *WindowState) updateKey(key KeyCode, isPressed bool) {
+	if key < 256 {
+		s.keyCodeArray[byte(key)] = isPressed
+	} else {
+		s.keyCodeMap[key] = isPressed
+	}
+
+	sMap := KeyCodeToUnshiftedAsciiMap
+	if s.CodeIsDown(KeyCodeShiftLeft) || s.CodeIsDown(KeyCodeShiftRight) {
+		sMap = KeyCodeToShiftedAsciiMap
+	}
+	if v, ok := sMap[key]; ok {
+		s.keyCharArray[v] = isPressed
+	}
+}
+
+func (s *WindowState) updateKeyboardState() {
+	s.keyWorkingBuf = s.keyWorkingBuf[:0]
+	s.keyWorkingBuf = inpututil.AppendJustReleasedKeys(s.keyWorkingBuf)
+
+	for _, key := range s.keyWorkingBuf {
+		s.updateKey(KeyCode(key), false)
+	}
+
+	s.keyWorkingBuf = s.keyWorkingBuf[:0]
+	s.keyWorkingBuf = inpututil.AppendJustPressedKeys(s.keyWorkingBuf)
+
+	for _, key := range s.keyWorkingBuf {
+		s.updateKey(KeyCode(key), true)
+	}
+}
+
+type game struct {
+	window       *WindowState
+	renderWidth  int
+	renderHeight int
+	windowWidth  int
+	windowHeight int
+}
+
+func (g *game) Update() error {
+	g.window.InputMutex.Lock()
+	g.window.updateKeyboardState()
+	g.window.InputMutex.Unlock()
+	if g.window.updateCallback != nil {
+		g.window.updateCallback(g.window)
+	}
+	return nil
+}
+
+func (g *game) Draw(screen *ebiten.Image) {
+	if g.window.renderCallback != nil {
+		g.window.renderCallback(g.window)
+	}
+	g.window.RenderMutex.Lock()
+	screen.WritePixels(g.window.Pix)
+	g.window.RenderMutex.Unlock()
+}
+
+func (g *game) Layout(newWindowWidth, newWindowHeight int) (int, int) {
+	g.windowWidth = newWindowWidth
+	g.windowHeight = newWindowHeight
+	return g.renderWidth, g.renderHeight
+}
+
+type InitDisplayLoopOptions struct {
+	WindowTitle    string
+	WindowWidth    int
+	WindowHeight   int
+	RenderWidth    int
+	RenderHeight   int
+	InitCallback   func(*WindowState)
+	UpdateCallback func(*WindowState)
+	RenderCallback func(*WindowState)
+}
+
+func InitDisplayLoop(opts InitDisplayLoopOptions) {
+	windowState := WindowState{
+		RenderWidth:    opts.RenderWidth,
+		RenderHeight:   opts.RenderHeight,
+		Pix:            make([]byte, 4*opts.RenderWidth*opts.RenderHeight),
+		keyCodeMap:     map[KeyCode]bool{},
+		keyCharMap:     map[rune]bool{},
+		updateCallback: opts.UpdateCallback,
+		renderCallback: opts.RenderCallback,
+	}
+
+	if opts.InitCallback != nil {
+		go opts.InitCallback(&windowState)
+	}
+
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetWindowSize(opts.WindowWidth, opts.WindowHeight)
+	ebiten.SetWindowTitle(opts.WindowTitle)
+	g := &game{
+		window:       &windowState,
+		windowWidth:  opts.WindowWidth,
+		windowHeight: opts.WindowHeight,
+		renderWidth:  opts.RenderWidth,
+		renderHeight: opts.RenderHeight,
+	}
+	if err := ebiten.RunGame(g); err != nil {
+		panic(err)
+	}
+}
