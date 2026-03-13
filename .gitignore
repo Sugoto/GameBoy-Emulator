@@ -1,0 +1,15 @@
+glide.lock
+vendor
+.vscode
+
+tools
+build
+build-dev
+r
+
+*.sav
+
+*.exe
+/goboy
+/goboy-term
+/goboy-monitor
